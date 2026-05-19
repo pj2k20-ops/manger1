@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 프렌치 냉장고 파먹기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Outfit:wght@400;500;600;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #FFFDF5;
+            --fridge-color: #F8F9FA;
+            --fridge-border: #E9ECEF;
+            --accent-color: #6B8E23; /* Olive Green */
+            --accent-hover: #556B2F;
+            --text-main: #2D3436;
+            --text-muted: #636E72;
+            --shadow: 0 10px 30px rgba(0,0,0,0.05);
+            --card-bg: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Gowun Dodum', 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .recipe-image-container {
+            width: 100%;
+            height: 200px;
+            border-radius: 25px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            background: #F8F9FA;
+            border: 1px solid #E9ECEF;
+        }
+
+        .recipe-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .recipe-image-container:hover img {
+            transform: scale(1.05);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Layout Grid */
+        .main-layout {
+            display: flex;
+            gap: 60px;
+            align-items: flex-start;
+            justify-content: center;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        /* Fridge UI */
+        .fridge-container {
+            width: 450px;
+            background: var(--fridge-color);
+            border-radius: 50px 50px 20px 20px;
+            border: 8px solid var(--fridge-border);
+            box-shadow: var(--shadow), inset 0 0 20px rgba(0,0,0,0.02);
+            position: relative;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Fridge Door Line */
+        .fridge-container::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 45%;
+            width: 100%;
+            height: 4px;
+            background: var(--fridge-border);
+        }
+
+        .fridge-handle {
+            position: absolute;
+            right: 20px;
+            top: 25%;
+            width: 12px;
+            height: 80px;
+            background: #CED4DA;
+            border-radius: 15px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .fridge-handle.bottom {
+            top: 55%;
+        }
+
+        .shelf {
+            background: rgba(255,255,255,0.8);
+            border-radius: 20px;
+            padding: 20px;
+            min-height: 140px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            border-bottom: 2px solid #DEE2E6;
+        }
+
+        .shelf-title {
+            grid-column: span 3;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #ADB5BD;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        /* Ingredient Item */
+        .ingredient {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            background: white;
+            border-radius: 18px;
+            border: 2px solid #F1F3F5;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            user-select: none;
+        }
+
+        .ingredient:hover {
+            transform: translateY(-5px);
+            border-color: #DEE2E6;
+        }
+
+        .ingredient.selected {
+            border-color: var(--accent-color);
+            background-color: #F8FFF0;
+            transform: scale(1.08);
+            box-shadow: 0 5px 15px rgba(107, 142, 35, 0.2);
+        }
+
+        .ingredient-icon {
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+        }
+
+        .ingredient-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        /* Recipe Result Column */
+        .result-container {
+            width: 450px;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Search Box */
+        .search-box {
+            width: 100%;
+            position: relative;
+            margin-bottom: 5px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 25px;
+            border-radius: 30px;
+            border: 2.5px solid var(--fridge-border);
+            font-family: 'Gowun Dodum', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 5px 15px rgba(107, 142, 35, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .recommend-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(107, 142, 35, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-family: 'Gowun Dodum', sans-serif;
+        }
+
+        .recommend-btn:hover {
+            background: var(--accent-hover);
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(107, 142, 35, 0.4);
+        }
+
+        .recommend-btn:disabled {
+            background: #ADB5BD;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Recipe Card */
+        #recipe-card {
+            background: var(--card-bg);
+            border-radius: 35px;
+            padding: 35px;
+            box-shadow: var(--shadow);
+            display: none;
+            animation: slideIn 0.5s ease;
+            border-left: 10px solid var(--accent-color);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .recipe-header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #F1F3F5;
+            padding-bottom: 15px;
+        }
+
+        .recipe-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--text-main);
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .recipe-tags {
+            font-size: 0.9rem;
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 15px 0 10px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ingredients-list, .steps-list {
+            list-style: none;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .ingredients-list li::before {
+            content: '•';
+            color: var(--accent-color);
+            margin-right: 8px;
+        }
+
+        .steps-list li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .steps-list li::before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 0;
+            top: 2px;
+            width: 18px;
+            height: 18px;
+            background: var(--fridge-border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: var(--text-muted);
+        }
+
+        .steps-list {
+            counter-reset: step-counter;
+        }
+
+        .save-btn {
+            margin-top: 25px;
+            width: 100%;
+            padding: 15px;
+            background: transparent;
+            border: 2.5px solid #FF7675;
+            color: #FF7675;
+            font-weight: 700;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: 'Gowun Dodum', sans-serif;
+        }
+
+        .save-btn:hover {
+            background: #FF7675;
+            color: white;
+        }
+
+        /* Popular Board */
+        .popular-board {
+            width: 100%;
+            margin-top: 80px;
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: var(--shadow);
+        }
+
+        .board-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        .popular-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .popular-item {
+            padding: 20px;
+            background: #F8F9FA;
+            border-radius: 20px;
+            border: 1px solid #E9ECEF;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .popular-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: var(--accent-color);
+            opacity: 0.5;
+        }
+
+        .popular-item .rank {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: var(--accent-color);
+            font-weight: 700;
+            margin-bottom: -5px;
+        }
+
+        .popular-item .name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text-main);
+        }
+
+        .popular-item .stats {
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            background: rgba(107, 142, 35, 0.1);
+            padding: 2px 8px;
+            border-radius: 10px;
+            width: fit-content;
+            font-weight: 600;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1000px) {
+            .main-layout {
+                flex-direction: column;
+                align-items: center;
+            }
+            .fridge-container, .result-container {
+                width: 100%;
+                max-width: 450px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>냉장고 속 프랑스 가정식 레시피</h1>
+            <p class="subtitle">AI 추천: 정통 프랑스 가정식 레시피</p>
+        </header>
+
+        <div class="main-layout">
+            <div class="fridge-container">
+                <div class="fridge-handle"></div>
+                <div class="fridge-handle bottom"></div>
+                
+                <div class="shelf">
+                    <div class="shelf-title">Fresh Veggie & Fruit</div>
+                    <div class="ingredient" data-id="onion" data-emoji="🧅">
+                        <span class="ingredient-icon">🧅</span>
+                        <span class="ingredient-name">양파</span>
+                    </div>
+                    <div class="ingredient" data-id="tomato" data-emoji="🍅">
+                        <span class="ingredient-icon">🍅</span>
+                        <span class="ingredient-name">토마토</span>
+                    </div>
+                    <div class="ingredient" data-id="potato" data-emoji="🥔">
+                        <span class="ingredient-icon">🥔</span>
+                        <span class="ingredient-name">감자</span>
+                    </div>
+                    <div class="ingredient" data-id="garlic" data-emoji="🧄">
+                        <span class="ingredient-icon">🧄</span>
+                        <span class="ingredient-name">마늘</span>
+                    </div>
+                    <div class="ingredient" data-id="carrot" data-emoji="🥕">
+                        <span class="ingredient-icon">🥕</span>
+                        <span class="ingredient-name">당근</span>
+                    </div>
+                    <div class="ingredient" data-id="mushroom" data-emoji="🍄">
+                        <span class="ingredient-icon">🍄</span>
+                        <span class="ingredient-name">양송이</span>
+                    </div>
+                </div>
+
+                <div class="shelf">
+                    <div class="shelf-title">Dairy & Bakery</div>
+                    <div class="ingredient" data-id="egg" data-emoji="🥚">
+                        <span class="ingredient-icon">🥚</span>
+                        <span class="ingredient-name">달걀</span>
+                    </div>
+                    <div class="ingredient" data-id="milk" data-emoji="🥛">
+                        <span class="ingredient-icon">🥛</span>
+                        <span class="ingredient-name">우유</span>
+                    </div>
+                    <div class="ingredient" data-id="cheese" data-emoji="🧀">
+                        <span class="ingredient-icon">🧀</span>
+                        <span class="ingredient-name">치즈</span>
+                    </div>
+                    <div class="ingredient" data-id="bread" data-emoji="🍞">
+                        <span class="ingredient-icon">🍞</span>
+                        <span class="ingredient-name">바게트</span>
+                    </div>
+                    <div class="ingredient" data-id="butter" data-emoji="🧈">
+                        <span class="ingredient-icon">🧈</span>
+                        <span class="ingredient-name">버터</span>
+                    </div>
+                    <div class="ingredient" data-id="wine" data-emoji="🍷">
+                        <span class="ingredient-icon">🍷</span>
+                        <span class="ingredient-name">와인</span>
+                    </div>
+                </div>
+
+                <div class="shelf">
+                    <div class="shelf-title">Meat & Fish</div>
+                    <div class="ingredient" data-id="meat" data-emoji="🥩">
+                        <span class="ingredient-icon">🥩</span>
+                        <span class="ingredient-name">소고기</span>
+                    </div>
+                    <div class="ingredient" data-id="chicken" data-emoji="🍗">
+                        <span class="ingredient-icon">🍗</span>
+                        <span class="ingredient-name">닭고기</span>
+                    </div>
+                    <div class="ingredient" data-id="fish" data-emoji="🐟">
+                        <span class="ingredient-icon">🐟</span>
+                        <span class="ingredient-name">흰살생선</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-container">
+                <div class="search-box">
+                    <input type="text" id="recipe-search" class="search-input" placeholder="관심 있는 요리를 검색해보세요...">
+                    <span class="search-icon" id="search-trigger">🔍</span>
+                </div>
+
+                <button id="recommend-btn" class="recommend-btn" disabled>
+                    <span>프랑스 요리 추천받기 ✨</span>
+                    <div class="spinner" id="btn-spinner"></div>
+                </button>
+
+                <div id="recipe-card">
+                    <div class="recipe-image-container">
+                        <img id="display-image" src="" alt="요리 완성 사진" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=500'">
+                    </div>
+                    <div class="recipe-header">
+                        <div class="recipe-name" id="display-name">요리 이름</div>
+                        <div class="recipe-tags">#정통프랑스식 #가정식</div>
+                    </div>
+                    
+                    <div class="section-title">📦 필요한 추가 재료</div>
+                    <ul class="ingredients-list" id="display-extra"></ul>
+
+                    <div class="section-title">🍳 조리 순서</div>
+                    <ul class="steps-list" id="display-steps"></ul>
+
+                    <button id="save-recipe-btn" class="save-btn">
+                        ❤️ 추천 레시피 저장
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="popular-board">
+            <div class="board-title">📊 실시간 인기 프랑스 요리 TOP 5</div>
+            <div class="popular-list" id="popular-list">
+                <p style="color: grey; font-size: 0.9rem;">불러오는 중...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Firebase 설정값 [cite: 111]
+        const firebaseConfig = {
+           apiKey: "AIzaSyCOovfSR50wGGz8fAG7F62s0bC_pKmtI6E",
+           authDomain: "franfran-4dd38.firebaseapp.com",
+           projectId: "franfran-4dd38",
+           storageBucket: "franfran-4dd38.appspot.com",
+           messagingSenderId: "792830880450",
+           appId: "1:792830880450:web:629863cb31d27f7721695b",
+           measurementId: "G-XZG9DWZ8Q4"
+        };
+
+        let db;
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+        } catch (e) {
+            // 따옴표 문자열 줄바꿈 버그 수정 [cite: 113]
+            console.warn("Firebase config is missing or invalid. Simulation mode only.");
+        }
+
+        // DATABASE HELPERS
+        async function saveRecipe(recipeData) {
+            if (!db) {
+                alert("Firebase가 설정되지 않았습니다. (시뮬레이션 모드)");
+                return;
+            }
+            try {
+                await addDoc(collection(db, "recipes"), {
+                    recipeName: recipeData.name,
+                    ingredients: recipeData.baseIngredients.join(", "),
+                    timestamp: serverTimestamp()
+                });
+                alert("레시피가 저장되었습니다! ❤️");
+            } catch (e) {
+                console.error("Save error:", e);
+                alert("저장 중 오류가 발생했습니다.");
+            }
+        }
+
+        function loadPopularRecipes() {
+            if (!db) return;
+            const q = query(collection(db, "recipes"), orderBy("timestamp", "desc"), limit(100));
+            onSnapshot(q, (snapshot) => {
+                const popularList = document.getElementById("popular-list");
+                popularList.innerHTML = "";
+                
+                if (snapshot.empty) {
+                    popularList.innerHTML = "<p style='color: grey;'>아직 저장된 레시피가 없습니다.</p>";
+                    return;
+                }
+
+                const counts = {};
+                snapshot.forEach((doc) => {
+                    const name = doc.data().recipeName;
+                    counts[name] = (counts[name] || 0) + 1;
+                });
+
+                const sorted = Object.entries(counts)
+                    .map(([name, count]) => ({ name, count }))
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 5);
+
+                sorted.forEach((item, index) => {
+                    const card = document.createElement("div");
+                    card.className = "popular-item";
+                    card.innerHTML = `
+                        <div class="rank">#${index + 1}</div>
+                        <div class="name">${item.name}</div>
+                        <div class="stats">🔥 ${item.count}명이 좋아함</div>
+                    `;
+                    popularList.appendChild(card);
+                });
+            });
+        }
+
+        // RECIPE LOGIC (Simulation)
+        const recipeDatabase = [
+            {
+                name: "키슈 로렌 (Quiche Lorraine)",
+                match: ["egg", "milk", "cheese"],
+                extra: ["베이컨", "생크림", "파이 반죽"],
+                image: "https://images.unsplash.com/photo-1612204030726-068579fc2664?auto=format&fit=crop&q=80&w=500",
+                steps: [
+                    "파이 반죽을 틀에 깔고 포크로 구멍을 냅니다.",
+                    "볶은 베이컨과 치즈를 바닥에 골고루 깝니다.",
+                    "달걀, 우유, 생크림을 섞은 소스를 붓습니다.",
+                    "180도 오븐에서 30~40분간 노릇하게 굽습니다."
+                ]
+            },
+            {
+                name: "양파 수프 (Soupe à l'Oignon)",
+                match: ["onion", "bread", "cheese"],
+                extra: ["버터", "쇠고기 육수", "와인"],
+                image: "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&q=80&w=500",
+                steps: [
+                    "양파를 채 썰어 버터에 갈색이 될 때까지 오래 볶습니다.",
+                    "와인과 육수를 넣고 약불에서 푹 끓입니다.",
+                    "수프 위에 바게트 빵과 치즈를 올립니다.",
+                    "오븐이나 그릴에서 치즈가 녹을 때까지 구워냅니다."
+                ]
+            },
+            {
+                name: "그라탱 도피누아 (Gratin Dauphinois)",
+                match: ["potato", "milk", "garlic"],
+                extra: ["생크림", "넛맥", "버터"],
+                image: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&q=80&w=500",
+                steps: [
+                    "감자를 얇게 썰어 준비합니다.",
+                    "오븐 용기에 마늘 단면을 문질러 향을 입힙니다.",
+                    "감자를 겹겹이 쌓고 우유와 생크림 혼합물을 붓습니다.",
+                    "160도 오븐에서 감자가 부드러워질 때까지 1시간 구워줍니다."
+                ]
+            },
+            {
+                name: "라따뚜이 (Ratatouille)",
+                match: ["tomato", "garlic", "onion"],
+                extra: ["가지", "애호박", "올리브유", "허브"],
+                image: "https://images.unsplash.com/photo-1572453800999-e8d2d1589b7c?auto=format&fit=crop&q=80&w=500",
+                steps: [
+                    "모든 채소를 비슷한 두께로 슬라이스합니다.",
+                    "토마토 소스를 바닥에 깐 냄비에 채소를 교차하며 세워 담습니다.",
+                    "올리브유와 허브를 뿌리고 뚜껑을 덮어 익힙니다.",
+                    "채소가 부드러워지면 뚜껑을 열어 수분을 날리며 마무리합니다."
+                ]
+            },
+            {
+                name: "코코뱅 (Coq au Vin)",
+                match: ["chicken", "wine", "mushroom", "onion"],
+                extra: ["베이컨", "닭육수", "브랜디"],
+                image: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&q=80&w=500",
+                steps: [
+                    "닭고기를 레드와인과 허브에 하룻밤 마리네이드합니다.",
+                    "고기를 건져 노릇하게 굽고, 양파와 양송이를 볶습니다.",
+                    "마리네이드했던 와인을 붓고 약불에서 1시간 이상 졸입니다.",
+                    "소스가 걸쭉해지면 소금, 후추로 간을 맞춥니다."
+                ]
+            },
+            {
+                name: "뵈프 부르기뇽 (Boeuf Bourguignon)",
+                match: ["meat", "wine", "carrot", "onion"],
+                extra: ["소고기 사태", "월계수 잎", "토마토 페이스트"],
+                image: "https://images.unsplash.com/photo-1534939561126-755ecf158d9d?auto=format&fit=crop&q=80&w=500",
+                steps: [
+                    "소고기를 큼직하게 썰어 노릇하게 굽습니다.",
+                    "채소를 넣고 함께 볶다가 레드와인을 듬뿍 붓습니다.",
+                    "허브와 토마토 페이스트를 넣고 아주 약한 불에서 3시간 졸입니다.",
+                    "고기가 입안에서 부서질 정도로 부드러워지면 완성입니다."
+                ]
+            },
+            {
+                name: "솔 뫼니에르 (Sole Meunière)",
+                match: ["fish", "butter", "lemon"],
+                extra: ["밀가루", "파슬리"],
+                image: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&q=80&w=500",
+                steps: [
+                    "흰살생선에 밀가루를 얇게 묻힙니다.",
+                    "팬에 버터를 넉넉히 두르고 생선을 노릇하게 굽습니다.",
+                    "생선을 덜어내고 팬의 남은 버터에 레몬즙และ 파슬리를 넣습니다.",
+                    "생선 위에 향긋한 레몬 버터 소스를 뿌려 제공합니다."
+                ]
+            },
+            {
+                name: "가정식 쁘띠 오믈렛",
+                match: ["egg", "butter"],
+                extra: ["신선한 허브", "소금"],
+                image: "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&q=80&w=500",
+                steps: [
+                    "달걀을 곱게 풀고 체에 한 번 거릅니다.",
+                    "팬을 달구고 버터를 녹여 타지 않게 주의합니다.",
+                    "달걀물을 붓고 몽글몽글하게 저어줍니다.",
+                    "반을 접어 럭비공 모양을 만들고 중앙은 촉촉하게 유지합니다."
+                ]
+            }
+        ];
+
+        // UI INTERACTION
+        const ingredients = document.querySelectorAll('.ingredient');
+        const recommendBtn = document.getElementById('recommend-btn');
+        const spinner = document.getElementById('btn-spinner');
+        const recipeCard = document.getElementById('recipe-card');
+        const saveBtn = document.getElementById('save-recipe-btn');
+        const searchInput = document.getElementById('recipe-search');
+        const searchTrigger = document.getElementById('search-trigger');
+        let selectedIds = new Set();
+        let currentRecipe = null;
+
+        function displayRecipe(result) {
+            currentRecipe = result;
+            document.getElementById('display-name').textContent = result.name;
+            if (result.image) {
+                document.getElementById('display-image').src = result.image;
+            } else {
+                document.getElementById('display-image').src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=500";
+            }
+            
+            const extraList = document.getElementById('display-extra');
+            extraList.innerHTML = "";
+            (result.extra || []).forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                extraList.appendChild(li);
+            });
+            const stepsList = document.getElementById('display-steps');
+            stepsList.innerHTML = "";
+            (result.steps || []).forEach(step => {
+                const li = document.createElement('li');
+                li.textContent = step;
+                stepsList.appendChild(li);
+            });
+            recipeCard.style.display = "block";
+        }
+
+        // Search logic
+        function performSearch() {
+            const query = searchInput.value.trim().toLowerCase();
+            if (!query) return;
+
+            const result = recipeDatabase.find(r => 
+                r.name.toLowerCase().includes(query) || 
+                (r.extra && r.extra.some(e => e.toLowerCase().includes(query)))
+            );
+            if (result) {
+                recipeCard.style.display = "none";
+                setTimeout(() => {
+                    displayRecipe(result);
+                    recipeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 100);
+            } else {
+                alert("찾으시는 요리 레시피가 아직 없네요. 😅\n다른 검색어를 입력해보세요!");
+            }
+        }
+
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+        searchTrigger.addEventListener('click', performSearch);
+
+        ingredients.forEach(item => {
+            item.addEventListener('click', () => {
+                const id = item.dataset.id;
+                if (selectedIds.has(id)) {
+                    selectedIds.delete(id);
+                    item.classList.remove('selected');
+                } else {
+                    selectedIds.add(id);
+                    item.classList.add('selected');
+                }
+                recommendBtn.disabled = selectedIds.size === 0;
+            });
+        });
+
+        recommendBtn.addEventListener('click', async () => {
+            if (selectedIds.size === 0) return;
+
+            recommendBtn.disabled = true;
+            spinner.style.display = "block";
+            recipeCard.style.display = "none";
+
+            // Artificial delay for "AI sensation"
+            await new Promise(r => setTimeout(r, 1500));
+
+            // Matching Logic (💡 return 한 줄 정렬 버그 수정 완료) [cite: 167]
+            const matches = recipeDatabase.map(recipe => {
+                const intersection = recipe.match.filter(id => selectedIds.has(id));
+                const score = intersection.length / recipe.match.length;
+                return { ...recipe, score };
+            }).sort((a, b) => b.score - a.score);
+
+            const result = matches[0].score > 0 ? matches[0] : {
+                name: "창작 프렌치 스튜",
+                extra: ["치킨 스톡", "크림"],
+                steps: ["선택하신 재료들을 깨끗이 손질합니다.", "냄비에 올리브유를 두르고 재료를 볶습니다.", "물을 붓고 약불에서 뭉근하게 끓여냅니다."],
+                baseIngredients: Array.from(selectedIds),
+                image: "https://images.unsplash.com/photo-1547592115-397223e71783?auto=format&fit=crop&q=80&w=500"
+            };
+            result.baseIngredients = Array.from(selectedIds);
+            displayRecipe(result);
+
+            spinner.style.display = "none";
+            recommendBtn.disabled = false;
+        });
+
+        saveBtn.addEventListener('click', () => {
+            if (currentRecipe) {
+                saveRecipe(currentRecipe);
+            }
+        });
+
+        // Initialize popular board
+        loadPopularRecipes();
+    </script>
+</body>
+</html>
